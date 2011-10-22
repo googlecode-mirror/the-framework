@@ -1,0 +1,8 @@
+=Example:Create the Action=
+In the file created at [FrameworkExController Create the Controller] add the following function:
+<code>
+public function world()
+{
+    $this->view->assign('name','World');
+}
+</code>
