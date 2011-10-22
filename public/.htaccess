@@ -1,0 +1,12 @@
+# Desactivar ETags
+FileETag none
+# Expire images header
+<FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+</FilesMatch>
+# Regras de reencaminhamento
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule !\.(js|ico|gif|jpe?g|png|css|pdf)$ index.php
