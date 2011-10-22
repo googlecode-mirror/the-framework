@@ -1,0 +1,5 @@
+=Installing: Smarty=
+Smarty's installation is done through apt-get or aptitude:
+<code>
+$ sudo aptitude install smarty 3
+</code>
