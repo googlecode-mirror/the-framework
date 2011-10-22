@@ -1,0 +1,37 @@
+=How it Works: Bootstraping =
+=Description=
+O Bootstraping pode ser definido como o proceso interno de validções, inclusões de ficheiros e agregação de componentes comuns e encaminhamento do pedido feito pela framework até ser gerada a página HTML final.
+    
+O Bootstraping funciona com a activação do [http://httpd.apache.org/docs/current/mod/mod_rewrite.html mod_rewrite] no apache e com a colocação de um ficheiro com o nome .htaccess na raiz da pasta *public*. Este ficheiro contém regras de redireccionamento para todos os pedidos efectuados ao servidor.
+
+Este ficheiro está configurado de modo a que todos os pedidos efectuado para elementos estáticos - imagens, css, js, etc - sejam encaminhados sem interferências, mas os pedidos efectuados para conteudo dinãmico sejam encaminhados para o processo de bootstraping da plataforma.
+
+
+{{{
+# Desactivar ETags
+FileETag none
+# Expire images header
+<FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+</FilesMatch>
+# Regras de reencaminhamento
+
+
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule !\.(js|ico|gif|jpe?g|png|css|pdf)$ index.php
+}}}
+Estes pedidos seguem o seguinte  padrão de url: {{{server/controller/action}}}. Estes pedidos são depois processados nos ficheiros route.inc e dispatch.inc que validam as actividades do utilizador e instanciam o objecto Controller_<Controlador> e invocam a accão referida.
+
+As vantagens de utilizar esta arquitecura prendem-se com o facto de tu não precisares fazer nenhum validação de login e permissões nas acções.
+==Ficheiros Envolvidos==
+  * bootstrap.php
+  * autoload.inc
+  * initconfig.inc
+  * buildacl.inc
+  * route.inc
+  * accesscheck.inc
+  * dispatch.inc
+  * renderview.inc
