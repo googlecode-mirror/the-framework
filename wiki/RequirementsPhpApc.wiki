@@ -1,0 +1,5 @@
+=Requirements: APC=
+The [http://php.net/manual/en/book.apc.php Alternative PHP Cache] (APC)is the caching system used to store values at the Model layer. The installation is pretty straightforward:
+<code>
+$ sudo aptitude install php-cache
+</code>
