@@ -1,0 +1,22 @@
+=The PHP Framework=
+==Requirements==
+  * [RequirementsPhp PHP]
+    * [RequirementsPhpPdo PDO]
+    * [RequirementsPhpSmarty Smarty]
+    * [RequirementsPhpApc APC]
+    * [RequirementsPhpLog Log]
+==The Framework==
+===How it Works===
+  * [FrameworkHowStructure File Structure]
+  * [FrameworkHowBootstraping BootstrapingProcess]
+  * [FrameworkHowConfig Config Files]
+  * [FrameworkHowAutoload Autoloading]
+  * [FrameworkHowStandards Programming Standards]
+===Example===
+  * [FrameworkExController Creating the Controller]
+  * [FrameworkExAction Creating the Action]
+  * [FrameworkExView Creating the View]
+  * [FrameworkExModel Creating the Model]
+  * [FrameworkExPermissions Defining Permissions]
+===Using other Components===
+  * [FrameworkCompAntiSpam Creating an Anti-Spam Form]
