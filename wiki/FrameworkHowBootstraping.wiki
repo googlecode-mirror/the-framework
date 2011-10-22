@@ -2,10 +2,9 @@
 =Description=
 O Bootstraping pode ser definido como o proceso interno de validções, inclusões de ficheiros e agregação de componentes comuns e encaminhamento do pedido feito pela framework até ser gerada a página HTML final.
     
-O Bootstraping funciona com a activação do [http://httpd.apache.org/docs/current/mod/mod_rewrite.html mod_rewrite] no apache e com a colocação de um ficheiro com o nome .htaccess na raiz da pasta *public*. Este ficheiro contém regras de redireccionamento para todos os pedidos efectuados ao servidor.
+Bootstraping requires the [http://httpd.apache.org/docs/current/mod/mod_rewrite.html mod_rewrite] enabled in your apache configuration and a .htaccess file in the root of your server root - usually the *public* folder.
 
-Este ficheiro está configurado de modo a que todos os pedidos efectuado para elementos estáticos - imagens, css, js, etc - sejam encaminhados sem interferências, mas os pedidos efectuados para conteudo dinãmico sejam encaminhados para o processo de bootstraping da plataforma.
-
+This file is configured in such a way that the requests for static elements - images, css, js, etc. - are proceed as they usually do, but the request for a dynamic page redirected to the index.php page and the bootstraping process.
 
 {{{
 # Desactivar ETags
@@ -23,7 +22,8 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule !\.(js|ico|gif|jpe?g|png|css|pdf)$ index.php
 }}}
-Estes pedidos seguem o seguinte  padrão de url: {{{server/controller/action}}}. Estes pedidos são depois processados nos ficheiros route.inc e dispatch.inc que validam as actividades do utilizador e instanciam o objecto Controller_<Controlador> e invocam a accão referida.
+
+These requests follow this URL pattern: {{{server/controller/action}}}. They are then processed by some other files in the bootstraping process, that handle permissions, routing, view rendering, etc.
 
 As vantagens de utilizar esta arquitecura prendem-se com o facto de tu não precisares fazer nenhum validação de login e permissões nas acções.
 ==Ficheiros Envolvidos==
