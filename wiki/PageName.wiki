@@ -2,4 +2,4 @@
 ==Requirements==
   * [RequirementsPhp PHP]
     * [RequirementsPhpPdo PDO]
-    * [RequirementsPdpSmarty Smarty]
+    * [RequirementsPhpSmarty Smarty]
