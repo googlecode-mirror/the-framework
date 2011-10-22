@@ -1,7 +1,7 @@
 =The PHP Framework=
 ==Requirements==
   * [requirements/php PHP]
-    * [requirements/php/pdo PDO]
+    * [requirements/php/pdo]
     * APC
     * Smarty
     * LOg
