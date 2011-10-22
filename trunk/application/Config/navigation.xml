@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<nav>
+  <item>
+    <id>o id</id>
+    <label>a label</label>
+    <controller>o nome do controller</controller>
+    <action>a accao de login</action>
+    <auth>controller:action</auth>
+    <nav_path>controller:action</nav_path>
+  </item>
+</nav>
