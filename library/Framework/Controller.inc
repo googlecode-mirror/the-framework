@@ -24,10 +24,10 @@
  */
 abstract class Framework_Controller
 {
-	/**
-	 * 
-	 * @var Framework_Request
-	 */
+    /**
+     * 
+     * @var Framework_Request
+     */
     protected $request;
     
     /**

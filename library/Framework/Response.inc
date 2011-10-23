@@ -31,8 +31,8 @@ class Framework_Response
     private $_response_type = Framework_Response::RESPONSE_TYPE_HTML;
     private $_json_response = null;
 
-    private $has_error = false;
-    private $error_message;
+    private $_has_error = false;
+    private $_error_message;
     
     /**
      * Returns the response type
@@ -81,19 +81,36 @@ class Framework_Response
         return $this->_response_type === Framework_Response::RESPONSE_TYPE_JSON;
     }
     
+    /**
+     * Sets a generic error message.
+     * 
+     * @param string $msg the error message
+     * 
+     * @return void
+     */
     public function setErrorMessage($msg)
     {
-        $this->has_error = true;
-        $this->error_message = $msg;
+        $this->_has_error = true;
+        $this->_error_message = $msg;
     }
     
+    /**
+     * Returns the error message.
+     * 
+     * @return string
+     */
     public function getErrorMessage()
     {
-        return $this->error_message;
+        return $this->_error_message;
     }
     
+    /**
+     * Checks if the response has an error.
+     * 
+     * @return boolean
+     */
     public function hasError()
     {
-        return $this->has_error;
+        return $this->_has_error;
     }
 }
