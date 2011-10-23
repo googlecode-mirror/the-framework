@@ -1,7 +1,5 @@
 =How it Works: Bootstraping =
-=Description=
-O Bootstraping pode ser definido como o proceso interno de validções, inclusões de ficheiros e agregação de componentes comuns e encaminhamento do pedido feito pela framework até ser gerada a página HTML final.
-    
+=Description=   
 Bootstraping requires the [http://httpd.apache.org/docs/current/mod/mod_rewrite.html mod_rewrite] enabled in your apache configuration and a .htaccess file in the root of your server root - usually the *public* folder.
 
 This file is configured in such a way that the requests for static elements - images, css, js, etc. - are proceed as they usually do, but the request for a dynamic page redirected to the index.php page and the bootstraping process.
@@ -23,10 +21,9 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule !\.(js|ico|gif|jpe?g|png|css|pdf)$ index.php
 }}}
 
-These requests follow this URL pattern: {{{server/controller/action}}}. They are then processed by some other files in the bootstraping process, that handle permissions, routing, view rendering, etc.
+These requests follow this URL pattern: {{{server/controller/action}}}. They are then processed by some other files in the bootstraping process that handle: permissions, routing, view rendering, etc.
 
-As vantagens de utilizar esta arquitecura prendem-se com o facto de tu não precisares fazer nenhum validação de login e permissões nas acções.
-==Ficheiros Envolvidos==
+==Bootstraping Files==
   * bootstrap.php
   * autoload.inc
   * initconfig.inc
