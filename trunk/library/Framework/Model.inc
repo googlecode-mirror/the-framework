@@ -50,23 +50,20 @@ abstract class Framework_Model
             ';dbname=' .
             $pdo_config['mysql_dbname'];
                  
-    	try{    
-	        self::$dbh = new PDO(
-	            $dsn,
-	            $pdo_config['mysql_user'],
-	            $pdo_config['mysql_password']
-	        );
-	        self::$dbh->setAttribute(
-	            PDO::ATTR_ERRMODE,
-	            PDO::ERRMODE_EXCEPTION
-	       );
-    	} catch (PDOException $e) {
-    		print "Error!: " . $e->getMessage() . "<br/>";
-    		die();
-}
-    	  
-       
-       
+        try{
+            self::$dbh = new PDO(
+                $dsn,
+                $pdo_config['mysql_user'],
+                $pdo_config['mysql_password']
+            );
+            self::$dbh->setAttribute(
+                PDO::ATTR_ERRMODE,
+                PDO::ERRMODE_EXCEPTION
+            );
+        } catch (PDOException $e) {
+            print "Error!: " . $e->getMessage() . "<br/>";
+            die();
+        }
     }
     
     /**

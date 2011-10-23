@@ -138,6 +138,6 @@ class Framework_Request
     public function isXmlHttpRequest()
     {
         return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-		$_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+        $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
     }
 }

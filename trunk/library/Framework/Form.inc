@@ -110,11 +110,24 @@ abstract class Framework_Form
         }
     }
 
+    /**
+     * Returns all the values in the form.
+     * 
+     * @return array
+     */
     public function getValues()
     {
         return $this->a_fields;
     }
 
+    /**
+     * Sets a value in a form.
+     * 
+     * @param string $key   the key in the array to store the field value.
+     * @param mixed  $value the value of the field
+     * 
+     * @return void
+     */
     public function setValue($key, $value)
     {
         $this->a_fields[$key] = $value;

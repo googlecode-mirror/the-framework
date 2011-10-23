@@ -77,8 +77,8 @@ class Framework_Navigation
     public function getAllowedItems()
     {
         if (!isset($_SESSION['navigation_role'])
-        || (isset($_SESSION['navigation_role'])
-        && $_SESSION['navigation_role'] !== Framework_Registry::get('role'))
+            || (isset($_SESSION['navigation_role'])
+            && $_SESSION['navigation_role'] !== Framework_Registry::get('role'))
         ) {
             $new_role = true;
         } else {
@@ -86,7 +86,7 @@ class Framework_Navigation
         }
 
         if (false === isset($_SESSION['navigation_allowed'])
-        || true === $new_role
+            || true === $new_role
         ) {
             $this->_init();
             $return_arr = array();
@@ -97,7 +97,7 @@ class Framework_Navigation
             foreach ($this->_items as $item) {
                 $a_auth = $item->getAuth();
                 $is_auth = $acl->isAuthorized(
-                Framework_Registry::get('role'),
+                    Framework_Registry::get('role'),
                     $a_auth[0],
                     isset($a_auth[1]) ? $a_auth[1] : ''
                 );
