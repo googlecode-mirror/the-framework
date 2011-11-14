@@ -12,16 +12,10 @@
  * @license  GPLv3 http://www.gnu.org/licenses/gpl.html
  *
  */
-if (false === $request instanceof Framework_Request) {
-    write_error_msg("Dispatch", "Request object not instantiated.");
-}
-
 if (false === $acl->exists($request->getController(), $request->getAction())) {
     $request->setController('error');
     $request->setAction('notFound');
-}
-
-if (false === $is_authorized) {
+} else if (false === $is_authorized) {
     $request->setController('error');
     $request->setAction('prohibited');
 }
@@ -32,8 +26,6 @@ $action_nm = $request->getAction();
 $controller_path = BASE_PATH . "/application/Controller/{$controller_nm}.inc";
 
 require_once $controller_path;
-require_once 'smarty3/Smarty.class.php';
-require_once 'smarty3/plugins/block.t.php';
 
 $view = new Smarty();
 
@@ -45,7 +37,7 @@ try {
     $controller->init();
     $controller->$action_nm();
 } catch (Exception $e) {
-    write_error_msg("Dispatch", $e);
+    write_error_msg('DISPATCH', $e);
     $request->setController('error');
     $request->setAction('application');
     $action_nm = 'application';

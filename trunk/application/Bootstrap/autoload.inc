@@ -25,20 +25,24 @@ function __autoloadFramework($class_name)
     $file_name = null;
     $paths = array(
         BASE_PATH . '/library/',
-        BASE_PATH . '/application/'
+        BASE_PATH . '/application/',
+        BASE_PATH . '/library/Smarty-3.1.4/libs/'
     );
     foreach ($paths as $path) {
         $inc_ext = $path . $class_path . '.inc';
-
-        write_info_msg("Including", $inc_ext);
-
+        $classphp_ext = $path . $class_path . '.class.php';
+        
         if (file_exists($inc_ext)) {
+            write_info_msg("Including", $inc_ext);
             include $inc_ext;  
+            return true;
+        } else if (file_exists($classphp_ext)) {
+            write_info_msg("Including", $classphp_ext);
+            include $classphp_ext;
             return true;
         }
     }
 
-    write_warn_msg("File", "{$class_path} not found.");
     return false;
 }
 spl_autoload_register('__autoloadFramework');

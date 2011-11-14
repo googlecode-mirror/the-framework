@@ -8,7 +8,7 @@
  * 
  * @category   Framework
  * @package    Framework
- * @subpackage ACL
+ * @subpackage Model
  * @author     Tiago Seixas <tiagoafseixas@gmail.com>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl.html
  * @version    SVN: 1
@@ -19,7 +19,7 @@
  *
  * @category   Framework
  * @package    Framework
- * @subpackage ACL
+ * @subpackage Model
  * @author     Tiago Seixas <tiagoafseixas@gmail.com>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl.html
  * @version    Release: 1
@@ -99,6 +99,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
         $this->controller = $c;
     }
 
+    /**
+     * Returns the controller
+     * 
+     * @return string
+     */
     public function getController()
     {
         return $this->controller;
@@ -117,6 +122,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
         $this->action = $a;
     }
 
+    /**
+     * Returns the action
+     * 
+     * @return string
+     */
     public function getAction()
     {
         return $this->action;
@@ -158,6 +168,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
         return $this->total_pages;
     }
 
+    /**
+     * Returns the parameters used to filter the results.
+     * 
+     * @return array
+     */
     public function getWhereParams()
     {
         return $this->where_params;

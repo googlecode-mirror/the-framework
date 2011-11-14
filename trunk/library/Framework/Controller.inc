@@ -35,12 +35,6 @@ abstract class Framework_Controller
      * @var Framework_Response
      */
     protected $response;
-    
-    /**
-     * 
-     * @var Log
-     */
-    protected $logger;
 
     /**
      * 

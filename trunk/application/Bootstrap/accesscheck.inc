@@ -12,15 +12,10 @@
  * @license  GPLv3 http://www.gnu.org/licenses/gpl.html
  *
  */
-if (false === $acl instanceof Framework_ACL) {
-    write_error_msg("Access Check", "ACL list is not built.");
-}
-
-if (false === $request instanceof Framework_Request) {
-    write_error_msg("Access Check", "Request object not instantiated.");
-} 
-
-if ($acl instanceof Framework_ACL && $request instanceof Framework_Request) {
+if (true === isset($acl) && true === $acl instanceof Framework_ACL 
+    && true === isset($request) && true === $request instanceof Framework_Request
+    ) {
+    
     $role = "guest";
     if (true === isset($_SESSION["session_role"])) {
         $role = $_SESSION["session_role"];

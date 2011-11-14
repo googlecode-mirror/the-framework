@@ -32,23 +32,22 @@ abstract class Framework_Model
      */
     protected static $dbh;
     
-    protected $logger;
-    
     /**
      * Connects to the database.
      *
      * @access protected
      * @uses Framework_ConnectionFactory
+     * 
+     * @throws Framework_Model_Exception
+     * 
      * @return void
      */
     protected function connect()
     {
         $pdo_config = Framework_Registry::get('db_configs');
         $dsn = $pdo_config['pdo_driver'] .
-            ':host=' .
-            $pdo_config['mysql_host'] .
-            ';dbname=' .
-            $pdo_config['mysql_dbname'];
+            ':host=' . $pdo_config['mysql_host'] .
+            ';dbname=' . $pdo_config['mysql_dbname'];
                  
         try{
             self::$dbh = new PDO(
@@ -56,13 +55,15 @@ abstract class Framework_Model
                 $pdo_config['mysql_user'],
                 $pdo_config['mysql_password']
             );
-            self::$dbh->setAttribute(
-                PDO::ATTR_ERRMODE,
-                PDO::ERRMODE_EXCEPTION
-            );
+            
+            self::$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            print "Error!: " . $e->getMessage() . "<br/>";
-            die();
+            write_error_msg('MODEL', $e);
+            throw new Framework_Model_Exception(
+                'Error connecting to the database',
+                Framework_Model_Exception::EC_DB_CONNECTION_ERR,
+                $e
+            );
         }
     }
     
@@ -75,7 +76,9 @@ abstract class Framework_Model
      * @uses PDO
      * @uses Log
      *
-     * @return string the last iserted id
+     * @throws Framework_Model_Exception
+     * 
+     * @return string the last inserted id
      */
     protected function executeDefaultInsert($query, $params)
     {
@@ -86,8 +89,7 @@ abstract class Framework_Model
             $stmt = self::$dbh->prepare($query);
             $stmt->execute($params);
         } catch (PDOException $e) {
-            $this->logger->err($e->getMessage());
-            write_error_msg("Model", $e);
+            write_error_msg("MODEL", $e);
             return false;
         }
 
@@ -102,6 +104,8 @@ abstract class Framework_Model
      * @uses PDO
      * @uses Log
      *
+     * @throws Framework_Model_Exception
+     * 
      * @return array
      */
     protected function executeDefaultSelect($query, $params = null)
@@ -112,7 +116,6 @@ abstract class Framework_Model
             if (false === self::$dbh instanceof PDO) {
                 $this->connect();
             }
-
             $stmt = self::$dbh->prepare($query);
             
             if ($params !== null) {
@@ -120,11 +123,9 @@ abstract class Framework_Model
             } else {
                 $stmt->execute();
             }
-            
             $ret = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch(PDOException $e) {
-            $this->logger->err($e->getMessage());
-            write_error_msg("Model", $e);
+            write_error_msg("MODEL", $e);
         }
         return $ret;
     }
@@ -138,6 +139,8 @@ abstract class Framework_Model
      * @uses PDO
      * @uses Log
      *
+     * @throws Framework_Model_Exception
+     * 
      * @return boolean
      */
     protected function executeDefaultUptade($query, $params)
@@ -151,8 +154,7 @@ abstract class Framework_Model
             $stmt->execute($params);
             $result = $stmt->rowCount() > 0 ? true : false;
         } catch (PDOException $e) {
-            $this->logger->err($e->getMessage());
-            write_error_msg("Model", $e);
+            write_error_msg("MODEL", $e);
         }
         return $result;
     }
@@ -164,11 +166,14 @@ abstract class Framework_Model
      * @param array  $params  an array of parameters to use in the query
      * @param long   $timeout the ammount of time the query will be stored
      *
+     * @throws Framework_Model_Exception
+     * 
      * @access protected
      * @return resultset
      */
-    protected function selectWithCache($query, $params = array(), $timeout = 43200)
-    {
+    protected function selectWithCache($query, $params = array(),
+        $timeout = 43200
+    ) {
         $apc_key = md5($query . join("", $params));
         
         if (false === apc_fetch($apc_key)) {
@@ -190,8 +195,7 @@ abstract class Framework_Model
                 apc_add($apc_key, $ret, $timeout);
                 write_info_msg("Model", "Added $apc_key to APC.");
             } catch(PDOException $e) {
-                $this->logger->err($e->getMessage());
-                write_error_msg("Model", $e);
+                write_error_msg("MODEL", $e);
             }
         } else {
             write_info_msg("Model", "Fetched $apc_key from APC.");

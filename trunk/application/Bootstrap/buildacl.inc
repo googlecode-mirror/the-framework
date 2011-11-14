@@ -22,6 +22,56 @@ if (false === isset($_SESSION['acl'])) {
     
     // Actions
     $acl->addAction('index', 'index');
+    $acl->addAction('index', 'contact');
+    $acl->addAction('index', 'help');
+
+    $acl->addAction('authentication', 'index');
+    $acl->addAction('authentication', 'login');
+    $acl->addAction('authentication', 'logout');
+    $acl->addAction('authentication', 'recover');
+    
+    $acl->addAction('user', 'register');
+    $acl->addAction('user', 'update');
+
+    $acl->addAction('classifieds', 'search');
+    $acl->addAction('classifieds', 'user');
+
+    $acl->addAction('classified', 'add');
+    $acl->addAction('classified', 'view');
+    $acl->addAction('classified', 'comment');
+    $acl->addAction('classified', 'contact');
+    
+    $acl->addAction('municipality', 'findByDistrictId');
+
+    $acl->addAction('forum', '');
+    // Authorization
+    $acl->authorize('guest', 'index', 'index');
+    $acl->authorize('guest', 'index', 'contact');
+    $acl->authorize('guest', 'index', 'help');
+
+    $acl->authorize('guest', 'user', 'register');
+    $acl->authorize('user', 'user', 'update');
+
+    $acl->authorize('guest', 'authentication', 'login');
+    $acl->authorize('user', 'authentication', 'logout');
+    $acl->authorize('guest', 'authentication', 'recover');
+
+    $acl->authorize('guest', 'classifieds', 'search');
+    $acl->authorize('user', 'classifieds', 'user');
+    
+    $acl->authorize('guest', 'classified', 'view');
+    $acl->authorize('guest', 'classified', 'add');
+    $acl->authorize('guest', 'classified', 'comment');
+    $acl->authorize('guest', 'classified', 'contact');
+    
+    $acl->authorize('guest', 'municipality', 'findByDistrictId');
+    
+    $acl->authorize('guest', 'forum', '');
+    
+    // denials
+    $acl->deny('user', 'authentication', 'login');
+    $acl->deny('user', 'authentication', 'recover');
+    $acl->deny('user', 'user', 'register');
 
     $_SESSION['acl'] = serialize($acl);
 } else {
