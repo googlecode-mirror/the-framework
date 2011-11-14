@@ -48,6 +48,9 @@ function utf8_encode_assoc_array(&$arr)
     }
     return count($arr);
 }
+// ==================================================================================
+// FILTER FUNCTIONS
+// ==================================================================================
 /**
  * Validates is an element received from the client side exists/ is empty.
  *
@@ -87,8 +90,12 @@ function filter_validate_numeric_or_empty($v)
  */
 function filter_validate_date($v)
 {
-    $s_regexp = '/^([\d]){4}([.-\s\/\\\])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/';
-    return filter_var($v, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $s_regexp)));
+    $s_regexp 
+        = '/^([\d]){4}([.-\s\/\\\])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/';
+    return filter_var(
+        $v, FILTER_VALIDATE_REGEXP,
+        array('options' => array('regexp' => $s_regexp))
+    );
 }
 /**
  * Validates is an element received is a phone number.
@@ -100,15 +107,22 @@ function filter_validate_date($v)
 function filter_validate_phone_number($v)
 {
     $s_regexp = '/^[\d\s+]{1,}$/';
-    return filter_var($v, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $s_regexp)));
+    return filter_var(
+        $v, FILTER_VALIDATE_REGEXP,
+        array('options' => array('regexp' => $s_regexp))
+    );
 }
 
 global $messages;
 $messages = array();
-
+// ==================================================================================
+// MESSAGE FUNCTIONS
+// ==================================================================================
+// These functions write messages (info, warning or error) either to an array of
+// messages or to a log file when debug mode is not enabled.
 /**
- * Writes an error message. If debug mode is enabled it will add a message to the
- * global messages variable.
+ * Writes an error message. If debug mode is enabled it will add a message to
+ * the global messages variable.
  *
  * @param string $prefix a group identifier for the messages.
  *                       It can be a file name or class name.
@@ -118,13 +132,13 @@ $messages = array();
  */
 function write_error_msg($prefix, $msg)
 {
-    global $debug;
     global $messages;
-    global $start_time;
 
-    if ($debug === true) {
-        $exec_time = round(microtime(true) - $start_time, 5);
+    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
+        $exec_time = round(microtime(true) - START_TIME, 5);
         $messages[] = array("error", $prefix, $msg, $exec_time);
+    } else {
+        write_log_message($prefix, $msg, LOG_ERR);
     }
 }
 /**
@@ -139,18 +153,18 @@ function write_error_msg($prefix, $msg)
  */
 function write_info_msg($prefix, $msg)
 {
-    global $debug;
-    global $start_time;
     global $messages;
 
-    if ($debug === true) {
-        $exec_time = round(microtime(true) - $start_time, 5);
+    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
+        $exec_time = round(microtime(true) - START_TIME, 5);
         $messages[] = array("info", $prefix, $msg, $exec_time);
+    } else {
+        write_log_message($prefix, $msg, LOG_INFO);
     }
 }
 /**
- * Writes a warning message. If debug mode is enabled it will add a message to the
- * global messages variable.
+ * Writes a warning message. If debug mode is enabled it will add a message to
+ * the global messages variable.
  *
  * @param string $prefix a group identifier for the messages.
  *                       It can be a file name or class name.
@@ -160,20 +174,22 @@ function write_info_msg($prefix, $msg)
  */
 function write_warn_msg($prefix, $msg)
 {
-    global $debug;
-    global $start_time;
     global $messages;
 
-    if ($debug === true) {
-        $exec_time = round(microtime(true) - $start_time, 5);        
+    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
+        $exec_time = round(microtime(true) - START_TIME, 5);        
         $messages[] = array("warn", $prefix, $msg, $exec_time);
+    } else {
+        write_log_message($prefix, $msg, LOG_WARNING);
     }
 }
 
 /**
  * Limits debugging to a local environment
+ * 
+ * @return boolean
  */
-function canDebug()
+function can_debug()
 {
     $allowed = array ('127.0.0.1');
     return in_array($_SERVER['REMOTE_ADDR'], $allowed);
@@ -258,11 +274,11 @@ function flush_msgs()
 
     echo (
         "</tbody></table></body></html>"
-        );
+    );
 }
 /**
- * The application error handler. If debug is enabled the error will be written into
- * the messages array.
+ * The application error handler. If debug is enabled the error will be written
+ * into the messages array.
  *
  * @param string $errno   the error number
  * @param string $errstr  the error message
@@ -273,28 +289,28 @@ function flush_msgs()
  */
 function err_handler($errno, $errstr, $errfile, $errline)
 {
-    global $debug;
     global $messages;
-    global $start_time;
 
-    if ($debug === true) {
+    if (true === defined('DEBUG_ENABLED') && true === DEBUG_ENABLED) {
         $date = explode(" ", microtime());
-        $microsecs = sprintf("%F", $date[0] - $start_time);
+        $microsecs = sprintf("%F", $date[0] - START_TIME);
         $messages[] = array(
             "error",
             "PHP",
             "<p>{$errstr}</p><p>File: {$errfile}:$errline</p>",
         $microsecs
         );
+    } else {
+        write_log_message("ERROR HANDLER", "{$errstr} {$errfile}:$errline", LOG_ERR);
     }
 }
 
 set_error_handler('err_handler');
 
 /**
- * The application shutdown function. If the shutdown cause is an error it will be
- * added to the messages array. If debug mode is enabled the function flush_msgs is
- * called to render the messages table.
+ * The application shutdown function. If the shutdown cause is an error it will
+ * be added to the messages array. If debug mode is enabled the function
+ * flush_msgs is called to render the messages table.
  *
  * @uses flush_msgs
  *
@@ -302,17 +318,17 @@ set_error_handler('err_handler');
  */
 function shutDownFunction()
 {
-    global $debug;
     $error = error_get_last();
 
-    if (true === $debug && (!isset($_SERVER['HTTP_X_REQUESTED_WITH']))) {
-        global $debug;
+    if (true === defined('DEBUG_ENABLED') 
+        && true === DEBUG_ENABLED 
+        && (!isset($_SERVER['HTTP_X_REQUESTED_WITH']))
+    ) {
         global $messages;
-        global $start_time;
 
         if ($error !== null) {
-            $date = explode(" ", microtime());
-            $microsecs = sprintf("%F", $date[0] - $start_time);
+            $date = explode(" ", microtime(true));
+            $microsecs = sprintf("%F", $date[0] - START_TIME);
             $errstr = $error['message'];
             $errfile = $error['file'];
             $errline = $error['line'];
@@ -328,3 +344,161 @@ function shutDownFunction()
 }
 
 register_shutdown_function('shutdownFunction');
+
+/**
+ * This function writes to the log defined in the ini file.
+ * 
+ * @param string $msg_ident The identity of the element writing this msg
+ * @param mixed  $msg       The message being written to the log
+ * @param int    $level     The log level for this message
+ * 
+ * @uses Framework_Registry
+ * 
+ * @return void
+ */
+function write_log_message($msg_ident, $msg, $level = LOG_INFO)
+{
+    if ($level <= DEFAULT_LOG_LEVEL) {
+        $date = date('D M d H:i:s Y');
+        switch ($level) {
+        case LOG_INFO:
+            $level_desc = 'INFO';
+            break;
+        case LOG_DEBUG:
+            $level_desc = 'DEBUG';
+            break;
+        case LOG_WARNING:
+            $level_desc = 'WARNING';
+            break;
+        case LOG_ERR:
+            $level_desc = 'ERROR';
+            break;
+        case LOG_ALERT:
+            $level_desc = 'ALERT';
+            break;
+        default:
+            $level_desc = 'INFO';
+            break;
+        }
+        
+        // create the message prefix: date, remote address and the identity
+        $log_msg = sprintf(
+            '[%s] [%s] [CLIENT %s] [%s] ',
+            strtoupper($date),
+            $level_desc,
+            $_SERVER['REMOTE_ADDR'],
+            strtoupper($msg_ident)
+        );
+        
+        //before we write to the log we check if it's time to roll the log
+        log_roller();
+        
+        if ($msg instanceof Exception || is_subclass_of($msg, 'Exception')) {
+            error_log(
+                $log_msg . $msg->getMessage() . "\n",
+                3,
+                Framework_Registry::get('LOG_PATH')
+            );
+            $st = $msg->getTrace();
+            $st_length = sizeof($st);
+            for ($i = 0; $i < $st_length; $i++) {
+                $err_msg = $st[$i];
+                error_log(
+                    $log_msg . sprintf(
+                        "#%d %s() %s:%d",
+                        $i,
+                        $err_msg['function'],
+                        $err_msg['file'],
+                        $err_msg['line']
+                    ) . "\n",
+                    3,
+                    Framework_Registry::get('LOG_PATH')
+                );
+            }
+        } else {
+            $log_msg .= $msg . "\n";
+            error_log($log_msg, 3, Framework_Registry::get('LOG_PATH'));
+        }
+    }
+}
+/**
+ * Function responsible for renaming the log file when it reaches the max size
+ * 
+ * @uses Framework_Registry
+ * 
+ * @return void
+ */
+function log_roller()
+{
+    $file = Framework_Registry::get('LOG_PATH');
+    if (file_exists($file) && filesize($file) > (50 * 1024)) { // 50MB Max size
+        rename($file, $file . time());
+        clearstatcache();
+    }
+}
+// ==================================================================================
+// BREADCRUMB FUNCTIONS
+// ==================================================================================
+/**
+ * Adds a breadcrumb item to the array
+ * 
+ * @param string $text       the text displayed in the breadcrumb
+ * @param string $controller the controller that invokes this action
+ * @param string $action     the name of the action
+ * @param string $url        the url placed in the href
+ * 
+ * @return void
+ */
+function put_breadcrumb(
+    $text, $controller,$action, $url = null
+) {
+    if (false === isset($_SESSION['breadcrumbs'])) {
+        $_SESSION['breadcrumbs'] = array();
+    }
+    
+    $breadcrumbs = $_SESSION['breadcrumbs'];
+    $breadcrumbs_size = sizeof($breadcrumbs);
+    
+    for ($i = 0; $i < $breadcrumbs_size; $i++) {
+        if ($breadcrumbs[$i]['controller'] === $controller
+            && $breadcrumbs[$i]['action'] === $action
+        ) {
+            $breadcrumbs = array_slice($breadcrumbs, 0, $i, true);
+            $_SESSION['breadcrumbs'] = $breadcrumbs;
+            break;
+        }
+    }
+    
+    if ($url === null) {
+        $url = $_SERVER['REQUEST_URI'];
+    }
+    
+    $breadcrumb = array(
+        'text'       => $text,
+        'url'        => htmlentities($url),
+        'action'     => $action,
+        'controller' => $controller
+    );
+    
+    $_SESSION['breadcrumbs'][] = $breadcrumb;
+}
+/**
+ * Clears the breadcrumb array
+ * 
+ * @return void
+ */
+function clear_breadcrumbs()
+{
+    $_SESSION['breadcrumbs'] = array();
+}
+/**
+ * Returns the breadcrumb array
+ * 
+ * @return array
+ */
+function get_breadcrumbs()
+{
+    if (true === isset($_SESSION['breadcrumbs'])) {
+        return $_SESSION['breadcrumbs'];
+    }
+}

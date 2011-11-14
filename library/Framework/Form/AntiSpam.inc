@@ -25,7 +25,7 @@
  *
  * @category   Framework
  * @package    Framework
- * @subpackage AntiSpam
+ * @subpackage Form
  * @author     Tiago Seixas <tiagoafseixas@gmail.com>
  * @license    GPLv3 http://www.gnu.org/licenses/gpl.html
  * @version    Release: 1
@@ -133,6 +133,13 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
         return true;
     }
 
+    /**
+     * Validates the form.
+     * 
+     * @see Framework_Form::validate()
+     * 
+     * @return boolean
+     */
     public function validate()
     {
         return $this->validateAntiSpam() && parent::validate();
