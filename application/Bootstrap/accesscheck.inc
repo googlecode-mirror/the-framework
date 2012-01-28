@@ -14,7 +14,7 @@
  */
 if (true === isset($acl) && true === $acl instanceof Framework_ACL 
     && true === isset($request) && true === $request instanceof Framework_Request
-    ) {
+) {
     
     $role = "guest";
     if (true === isset($_SESSION["session_role"])) {

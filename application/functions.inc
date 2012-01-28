@@ -393,7 +393,7 @@ function write_log_message($msg_ident, $msg, $level = LOG_INFO)
         //before we write to the log we check if it's time to roll the log
         log_roller();
         
-        if ($msg instanceof Exception || is_subclass_of($msg, 'Exception')) {
+        if (is_a($msg, 'Exception')) {
             error_log(
                 $log_msg . $msg->getMessage() . "\n",
                 3,

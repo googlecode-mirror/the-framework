@@ -48,7 +48,7 @@ abstract class Framework_Model
         $dsn = $pdo_config['pdo_driver'] .
             ':host=' . $pdo_config['mysql_host'] .
             ';dbname=' . $pdo_config['mysql_dbname'];
-                 
+        
         try{
             self::$dbh = new PDO(
                 $dsn,
@@ -92,7 +92,7 @@ abstract class Framework_Model
             write_error_msg("MODEL", $e);
             return false;
         }
-
+        
         return self::$dbh->lastInsertId();
     }
     /**
@@ -111,7 +111,7 @@ abstract class Framework_Model
     protected function executeDefaultSelect($query, $params = null)
     {
         $ret = null;
-
+        
         try {
             if (false === self::$dbh instanceof PDO) {
                 $this->connect();
@@ -143,7 +143,7 @@ abstract class Framework_Model
      * 
      * @return boolean
      */
-    protected function executeDefaultUptade($query, $params)
+    protected function executeDefaultUpdate($query, $params)
     {
         $result = false;
         try {
@@ -171,8 +171,8 @@ abstract class Framework_Model
      * @access protected
      * @return resultset
      */
-    protected function selectWithCache($query, $params = array(),
-        $timeout = 43200
+    protected function selectWithCache(
+        $query, $params = array(), $timeout = 43200
     ) {
         $apc_key = md5($query . join("", $params));
         
