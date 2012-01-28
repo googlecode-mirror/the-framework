@@ -32,7 +32,7 @@ if (false === isset($_SESSION['DB_CONFIGS'])) {
 Framework_Registry::set('db_configs', $_SESSION['DB_CONFIGS']);
 $app_configs = $_SESSION['APP_CONFIGS'];
 foreach ($app_configs as $k => $arr) {
-    foreach($arr as $key => $value) {
+    foreach ($arr as $key => $value) {
         Framework_Registry::set($key, $value);
     }
 }

@@ -38,6 +38,12 @@ Caught Framework_Model_Exception:
     Trace     :
 %s
 ERR;
+    /**
+     * returns a formated exception
+     *
+     * @access public
+     * @returns string
+     */
     public function __toString()
     {
         return sprintf(

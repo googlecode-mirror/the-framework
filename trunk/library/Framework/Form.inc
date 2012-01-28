@@ -26,9 +26,6 @@ abstract class Framework_Form
 {
     protected $a_err_messages = array();
     protected $a_fields       = array();
-    protected $a_validate     = array();
-    protected $a_sanitize     = array();
-    protected $a_mandatory    = array();
 
     /**
      * Constructor for the Framework_Form class
@@ -42,6 +39,33 @@ abstract class Framework_Form
     {
         $this->a_fields = filter_var_array($a_inputs, $this->a_sanitize);
     }
+
+    /**
+     * returns an associative array containing the sanitization data for the
+     * form fields.(eg. 'field_name' => FILTER_SANITIZE_EXAMPLE)
+     *
+     * @access protected
+     * @return array
+     */
+    protected abstract function getSanitizeArray();
+
+    /**
+     * returns an associative array containing the validation data for the form
+     * fields.(eg. 'field_name' => FILTER_VALIDATE_EXAMPLE)
+     *
+     * @access protected
+     * @return array
+     */
+    protected abstract function getValidateArray();
+
+    /**
+     * returns an array containing the mandatory field names.
+     *
+     * @access protected
+     * @return array
+     */
+    protected abstract function getMandatorySrray();
+
     /**
      * Validates the Form
      *
@@ -112,7 +136,7 @@ abstract class Framework_Form
 
     /**
      * Returns all the values in the form.
-     * 
+     *
      * @return array
      */
     public function getValues()
@@ -122,14 +146,31 @@ abstract class Framework_Form
 
     /**
      * Sets a value in a form.
-     * 
+     *
      * @param string $key   the key in the array to store the field value.
      * @param mixed  $value the value of the field
-     * 
+     *
      * @return void
      */
     public function setValue($key, $value)
     {
         $this->a_fields[$key] = $value;
+    }
+
+    /**
+     * Returns a json formated version of the fields.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $output = get_called_class() . ' : { ' .
+            'a_fields : ' . json_encode($this->a_fields) . ',' .
+            'a_err_messages : ' . json_encode($this->a_err_messages) . ',' .
+            'a_mandatory : ' . json_encode($this->getMandatoryArray()) . ',' .
+            'a_sanitize : ' . json_encode($this->getSanitizeArray()) . ',' .
+            'a_validate : ' . json_encode($this->getValidateArray()) .
+            ' }';
+        return $output;
     }
 }

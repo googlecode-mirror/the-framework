@@ -5,7 +5,7 @@
  * This file contains the Framework_Form_AntiCSRF class.
  *
  * PHP versions 4 and 5
- * 
+ *
  * @category   Framework
  * @package    Framework
  * @subpackage Form
@@ -15,9 +15,10 @@
  */
 /**
  * This class extends the Framework_Form class and implements some
- * methods that prevent CSRF. 
- * 
- * @tutorial http://codeutopia.net/blog/2008/10/16/how-to-csrf-protect-all-your-forms/
+ * methods that prevent CSRF.
+ *
+ * @tutorial 
+ * http://codeutopia.net/blog/2008/10/16/how-to-csrf-protect-all-your-forms/
  *
  * @category   Framework
  * @package    Framework
@@ -33,59 +34,50 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
 
     /**
      * Constructs the AntiSpam fields in the form.
-     * 
+     *
      * @param array $params the parameters
      */
     public function __construct($params = array())
     {
-        if (sizeof($params) > 0 
-            && isset($_SESSION['anti_csrf']) 
-            && isset($params[$_SESSION['anti_csrf']['spinner']])
+        parent::__construct($params);
+
+        if (sizeof($params) > 0
+            && isset($_SESSION['anti_csrf'])
         ) {
             $this->_spinner = isset($params['spinner']) ? $params['spinner'] : null;
         } else {
-            $this->_spinner = sha1(
-                $_SERVER['REMOTE_ADDR'] . session_id() . 'spinner'
-            );
-            $_SESSION['anti_csrf'] = array(
-                'spinner' => $this->_spinner
-            );
+            $this->regenerateAntiCSRF();
         }
-        parent::__construct($params);
     }
 
     /**
      * Regenerates the elements of the AntiSpam verification.
-     * 
+     *
      * @return void
      */
     public function regenerateAntiCSRF()
     {
         $this->_spinner = sha1(
-            $_SERVER['REMOTE_ADDR'] . session_id() . 'spinner'
+            $_SERVER['REMOTE_ADDR'] . session_id() . 'spinner' . time()
         );
-        unset($_SESSION['anti_csrf']);
+
+        if (isset($_SESSION['anti_csrf'])) {
+            unset($_SESSION['anti_csrf']);
+        }
         $_SESSION['anti_csrf'] = array(
             'spinner' => $this->_spinner
         );
     }
-
     /**
      * Validates the antispam fields.
-     * 
-     * @todo: Validate the timestamp against some time (i.e. 30min)
-     *  
+     *
      * @return bool
      */
     public function validateAntiCSRF()
     {
         $old_spinner = $_SESSION['anti_csrf']['spinner'];
-        $new_spinner = sha1(
-            $_SERVER['REMOTE_ADDR'] . session_id() . 'spinner'
-        );
-        if ($this->_spinner === null 
-            || $old_spinner !== $this->_spinner 
-            || $this->_spinner !== $new_spinner
+        if ($this->_spinner === null
+            || $old_spinner !== $this->_spinner
         ) {
             return false;
         }
@@ -94,9 +86,9 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
 
     /**
      * Validates the form.
-     * 
+     *
      * @see Framework_Form::validate()
-     * 
+     *
      * @return boolean
      */
     public function validate()
@@ -105,7 +97,7 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
     }
     /**
      * Returns the spinner value.
-     * 
+     *
      * @return string
      */
     public function getSpinner()
