@@ -37,7 +37,7 @@ abstract class Framework_Form
      */
     public function __construct($a_inputs = array())
     {
-        $this->a_fields = filter_var_array($a_inputs, $this->a_sanitize);
+        $this->a_fields = filter_var_array($a_inputs, $this->getSanitizeArray());
     }
 
     /**
@@ -64,7 +64,7 @@ abstract class Framework_Form
      * @access protected
      * @return array
      */
-    protected abstract function getMandatorySrray();
+    protected abstract function getMandatoryArray();
 
     /**
      * Validates the Form
@@ -73,21 +73,27 @@ abstract class Framework_Form
      */
     public function validate()
     {
-        $a_validated_input = filter_var_array($this->a_fields, $this->a_validate);
+        $a_validated_input = filter_var_array($this->a_fields, $this->getValidateArray());
 
         foreach ($a_validated_input as $k => $v) {
             if ($v === false) {
-                $this->a_err_messages[$k] = gettext('O valor inserido não é válido');
+                $this->a_err_messages[$k] = gettext('O valor inserido nÃ£o Ã© vÃ¡lido');
             }
         }
 
-        foreach ($this->a_mandatory as $k) {
+        foreach ($this->getMandatoryArray() as $k) {
             if (filter_validate_not_empty($this->a_fields[$k]) === false) {
-                $this->a_err_messages[$k] = gettext('Este campo é obrigatório.');
+                $this->a_err_messages[$k] = gettext('Este campo Ã© obrigatÃ³rio.');
             }
         }
 
         return sizeof($this->a_err_messages) === 0;
+    }
+
+
+    public function hasErrors()
+    {
+        return sizeof($this->a_err_messages) > 0;
     }
 
     /**

@@ -31,6 +31,7 @@ if (true === isset($acl) && true === $acl instanceof Framework_ACL
     
     write_info_msg("Access Check", "Authorization is ${is_authorized}");
 } else {
+    write_error_msg("Access Check", "either $acl or $request are not set.");
     $request->setController("error");
     $request->setAction("application");
 }

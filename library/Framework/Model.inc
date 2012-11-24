@@ -31,15 +31,16 @@ abstract class Framework_Model
      * @var PDO
      */
     protected static $dbh;
-    
+
     /**
      * Connects to the database.
      *
      * @access protected
-     * @uses Framework_ConnectionFactory
-     * 
+     *
+     * @uses Framework_Registry
+     *
      * @throws Framework_Model_Exception
-     * 
+     *
      * @return void
      */
     protected function connect()
@@ -48,14 +49,14 @@ abstract class Framework_Model
         $dsn = $pdo_config['pdo_driver'] .
             ':host=' . $pdo_config['mysql_host'] .
             ';dbname=' . $pdo_config['mysql_dbname'];
-        
         try{
             self::$dbh = new PDO(
                 $dsn,
                 $pdo_config['mysql_user'],
-                $pdo_config['mysql_password']
+                $pdo_config['mysql_password'],
+                array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8") 
             );
-            
+
             self::$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             write_error_msg('MODEL', $e);
@@ -66,15 +67,17 @@ abstract class Framework_Model
             );
         }
     }
-    
+
     /**
      * Executes an insert statement
+     *
+     * @access protected
      *
      * @param string $query  the query to be executed
      * @param array  $params a list of parameters
      *
      * @uses PDO
-     * @uses Log
+     * @uses write_error_msg
      *
      * @throws Framework_Model_Exception
      * 
@@ -92,17 +95,19 @@ abstract class Framework_Model
             write_error_msg("MODEL", $e);
             return false;
         }
-        
+
         return self::$dbh->lastInsertId();
     }
     /**
      * Executes a select on the database
      *
+     * @access protected
+     *
      * @param string $query  the query to be executed
      * @param array  $params a list of parameters
      *
      * @uses PDO
-     * @uses Log
+     * @uses write_error_msg
      *
      * @throws Framework_Model_Exception
      * 
@@ -111,13 +116,13 @@ abstract class Framework_Model
     protected function executeDefaultSelect($query, $params = null)
     {
         $ret = null;
-        
+
         try {
             if (false === self::$dbh instanceof PDO) {
                 $this->connect();
             }
             $stmt = self::$dbh->prepare($query);
-            
+
             if ($params !== null) {
                 $stmt->execute($params);
             } else {
@@ -129,15 +134,17 @@ abstract class Framework_Model
         }
         return $ret;
     }
-    
+
     /**
      * Executes an update on the database
+     *
+     * @access protected
      *
      * @param string $query  the query to be executed
      * @param array  $params a list of parameters
      *
      * @uses PDO
-     * @uses Log
+     * @uses write_error_msg
      *
      * @throws Framework_Model_Exception
      * 
@@ -162,34 +169,36 @@ abstract class Framework_Model
     /**
      * Executes a select query and stores the value in the APC.
      *
+     * @access protected
+     *
      * @param string $query   the query statement
      * @param array  $params  an array of parameters to use in the query
      * @param long   $timeout the ammount of time the query will be stored
      *
-     * @throws Framework_Model_Exception
-     * 
-     * @access protected
+     * @uses write_error_msg
+     * @uses write_info_msg
+     *
      * @return resultset
      */
-    protected function selectWithCache(
-        $query, $params = array(), $timeout = 43200
+    protected function selectWithCache($query, $params = array(),
+        $timeout = 43200
     ) {
         $apc_key = md5($query . join("", $params));
-        
+
         if (false === apc_fetch($apc_key)) {
             try {
                 if (false === self::$dbh instanceof PDO) {
                     $this->connect();
                 }
-                
+
                 $stmt = self::$dbh->prepare($query);
-                
+
                 if ($params !== null) {
                     $stmt->execute($params);
                 } else {
                     $stmt->execute();
                 }
-                
+
                 $ret = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 apc_add($apc_key, $ret, $timeout);

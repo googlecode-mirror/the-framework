@@ -73,7 +73,7 @@ default:
                 //@todo render view app1l error
             }
         } else {
-            echo utf8_encode($smarty->fetch($action_nm . '.tpl'));
+            echo $smarty->fetch($action_nm . '.tpl');
         }
     }
     break;

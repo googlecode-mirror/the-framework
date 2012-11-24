@@ -41,19 +41,18 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
 
     /**
      * Constructs the AntiSpam fields in the form.
-     *
+     * The spinner is used as a control field
+     * 
      * @param array $params the parameters
      */
     public function __construct($params = array())
     {
-        if (sizeof($params) > 0
-            && isset($_SESSION['anti_spam'])
+        if (isset($params['spinner'])
         ) {
             if (isset($params[$_SESSION['anti_spam']['honeypot']])) {
                 $this->_honeypot = $params[$_SESSION['anti_spam']['honeypot']];
-            } else {
-                $this->_honeypot = null;
             }
+
             $this->_spinner = isset($params['spinner']) ? $params['spinner'] : null;
             if (isset($params['timestamp'])) {
                 $this->_timestamp = $params['timestamp'];
@@ -63,6 +62,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
         }
         parent::__construct($params);
     }
+
     /**
      * Regenerates the elements of the AntiSpam verification.
      *
@@ -86,6 +86,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
             'spinner'   => $this->_spinner
         );
     }
+
     /**
      * Validates the antispam fields.
      *
@@ -101,7 +102,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
         ) {
             write_error_msg(
                 get_called_class(),
-                'honeypot has been tampered with:' . $this->_honeypot . ';'
+            	'honeypot has been tampered with:' . $this->_honeypot . ';'
             );
             $return_val =  false;
         }
@@ -112,7 +113,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
         ) {
             write_error_msg(
                 get_called_class(),
-                'TimeStamp has expired or not valid:' + $this->_timestamp
+            	'TimeStamp has expired or not valid:' + $this->_timestamp
             );
             $return_val = false;
         }
@@ -123,7 +124,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
         ) {
             write_error_msg(
                 get_called_class(),
-                'Received Spinner is not the same as the server\'s'
+            	'Received Spinner is not the same as the server\'s'
             );
             $return_val = false;
         }
@@ -132,11 +133,12 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
             $this->a_err_messages['generic']
                 = gettext(
                     'Ocorreu um erro ao submeter o seu formulario.'
-                );
+          	  );
         }
 
         return $return_val;
     }
+
     /**
      * Validates the form.
      *
@@ -157,6 +159,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
     {
         return $_SESSION['anti_spam']['honeypot'];
     }
+
     /**
      * Returns the spinner value.
      *
@@ -166,6 +169,7 @@ abstract class Framework_Form_AntiSpam extends Framework_Form
     {
         return $this->_spinner;
     }
+
     /**
      * Returns the timestamp value.
      *

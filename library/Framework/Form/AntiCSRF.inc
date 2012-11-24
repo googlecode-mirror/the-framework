@@ -17,8 +17,7 @@
  * This class extends the Framework_Form class and implements some
  * methods that prevent CSRF.
  *
- * @tutorial 
- * http://codeutopia.net/blog/2008/10/16/how-to-csrf-protect-all-your-forms/
+ * @tutorial http://codeutopia.net/blog/2008/10/16/how-to-csrf-protect-all-your-forms/
  *
  * @category   Framework
  * @package    Framework
@@ -39,15 +38,18 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
      */
     public function __construct($params = array())
     {
-        parent::__construct($params);
-
-        if (sizeof($params) > 0
-            && isset($_SESSION['anti_csrf'])
+        if (isset($params['spinner'])
         ) {
-            $this->_spinner = isset($params['spinner']) ? $params['spinner'] : null;
+            $this->_spinner = $params['spinner'];
         } else {
-            $this->regenerateAntiCSRF();
+            $this->_spinner = sha1(
+                $_SERVER['REMOTE_ADDR'] . session_id() . 'spinner'
+            );
+            $_SESSION['anti_csrf'] = array(
+                'spinner' => $this->_spinner
+            );
         }
+        parent::__construct($params);
     }
 
     /**
@@ -68,9 +70,12 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
             'spinner' => $this->_spinner
         );
     }
+
     /**
      * Validates the antispam fields.
-     *
+     * 
+     * @todo: Validate the timestamp against some time (i.e. 30min)
+     *  
      * @return bool
      */
     public function validateAntiCSRF()
@@ -79,7 +84,11 @@ abstract class Framework_Form_AntiCSRF extends Framework_Form
         if ($this->_spinner === null
             || $old_spinner !== $this->_spinner
         ) {
-            return false;
+            write_error_msg(
+                get_called_class(),
+            	'Received Spinner is not the same as the server\'s'
+            );
+            $return_val = false;
         }
         return true;
     }

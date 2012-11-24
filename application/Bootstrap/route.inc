@@ -18,6 +18,7 @@ $clean_uri = explode("?", $request_uri);
 $data_uri = explode("/", $clean_uri[0]);
 array_shift($data_uri);
 
+//TODO: Para funcionar com WS REst e com modulos isto desaparece
 if (sizeof($data_uri) !== 2) {
     $size = sizeof($data_uri);
     write_warn_msg("Route", "Error parsing URI. Found size {$size} and expected 2.");
