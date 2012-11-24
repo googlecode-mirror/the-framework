@@ -34,9 +34,12 @@ abstract class Framework_Model_Paginator extends Framework_Model
     protected $total_items = 0;
     protected $total_pages;
     protected $current_page = 1;
-    protected $where_params = array();
+    protected $params = array();
     protected $data_set = array();
 
+    private static $_ORDER_BY_STMT = <<<OBS
+        ORDER BY %s %s
+OBS;
     /**
      * Executes the pagination.
      * 
@@ -52,6 +55,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
     public function getItemsPerPage()
     {
         return $this->items_per_page;
+    }
+
+    public function setItemsPerPage($items_per_page)
+    {
+        $this->items_per_page = $items_per_page;
     }
 
     /**
@@ -75,6 +83,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
         return $this->total_items;
     }
 
+    public function setTotalItems($total_items)
+    {
+        $this->total_items = $total_items;
+    }
+
     /**
      * Returns the entire current data set.
      * 
@@ -84,6 +97,11 @@ abstract class Framework_Model_Paginator extends Framework_Model
     public function getDataSet()
     {
         return $this->data_set;
+    }
+
+    public function setDataSet($ds)
+    {
+        $this->data_set = $ds;
     }
 
     /**
@@ -161,8 +179,10 @@ abstract class Framework_Model_Paginator extends Framework_Model
                     $total_pages += 1;
                 }
                 $this->total_pages = $total_pages;
-            } else {
+           } else if ($this->total_items > 0){
                 $this->total_pages = 1;
+            } else {
+                $this->total_pages = 0;
             }
         }
         return $this->total_pages;
@@ -175,6 +195,81 @@ abstract class Framework_Model_Paginator extends Framework_Model
      */
     public function getWhereParams()
     {
-        return $this->where_params;
+        return $this->params;
+    }
+
+    public function fetchTotalItems($finder_query, $params)
+    {
+        try {
+            if (false === self::$dbh instanceof PDO) {
+                $this->connect();
+            }
+            $stmt = self::$dbh->prepare($this->getCountStatement($finder_query));
+            $stmt->execute($params);
+            $res = $stmt->fetch();
+            $this->total_items = $res[0];
+        } catch (PDOException $e) {
+            write_error_msg('Framework_Model_Paginator', $e);
+        }
+    }
+
+    public function fetchDataSet($finder_query, $params)
+    {
+        try {
+            $offset = ($this->current_page-1) * $this->items_per_page;
+            $stmt = self::$dbh->prepare(
+                $this->getPaginationStatement($finder_query)
+            );
+
+            $stmt->execute($params);
+            $this->data_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            write_error_msg("Classified Paginator", $e);
+        }
+    }
+
+    /**
+     * Returns a count query for the query received as a parameter
+     *
+     * @param mixed $finder_query the base query for the statement
+     *
+     * @access public
+     *
+     * @return string
+     */
+    public function getCountStatement($finder_query)
+    {
+        return "SELECT COUNT(1) FROM ($finder_query) X";
+    }
+
+    /**
+     * Returns a pagination query for the query received as a parameter
+     *
+     * @param mixed $finder_query the base query for the statement
+     *
+     * @access public
+     *
+     * @return string
+     */
+    public function getPaginationStatement($finder_query)
+    {
+        return sprintf(
+            "$finder_query LIMIT %d OFFSET %d",
+            $this->items_per_page,
+            ($this->current_page-1) * $this->items_per_page
+        );
+    }
+
+    /**
+     * Returns an order by clause
+     * 
+     * @param  string $column_name the name of the column to order
+     * @param  string $order the order value
+     * @access protected
+     * @return string
+     */
+    protected function getOrderByClause($column_name, $order = "DESC")
+    {
+        return sprintf(self::$_ORDER_BY_STMT, $column_name, $order);
     }
 }

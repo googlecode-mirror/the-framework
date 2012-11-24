@@ -25,12 +25,15 @@
  */
 class Framework_Navigation_Item
 {
+    private $_id;
     private $_controller;
     private $_action;
     private $_label;
     private $_auth;
     private $_link;
     private $_nav_path;
+
+    private $_children;
 
     /**
      * The constructor for the Item class.
@@ -39,12 +42,18 @@ class Framework_Navigation_Item
      */
     public function __construct($item)
     {
-        $this->_link = "/{$item['controller']}/{$item['action']}";
+        $this->_id = $item['id'];
+        $this->_link = "/{$item['nav_path'][0]}";
+        if (sizeof($item['nav_path']) > 1) {
+            $this->_link .= "/" . $item['nav_path'][1];
+        }
+
         $this->_label = $item['label'];
         $this->_auth = $item['auth'];
         $this->_controller = $item['controller'];
         $this->_action = $item['action'];
         $this->_nav_path = $item['nav_path'];
+        $this->_children = array();
     }
 
     /**
@@ -113,5 +122,20 @@ class Framework_Navigation_Item
             return $cur_controller === $this->_nav_path[0]
             && $cur_action === $this->_nav_path[1];
         }
+    }
+
+    public function addChild($item)
+    {
+        $this->_children[] = $item;
+    }
+
+    public function getChildren()
+    {
+        return $this->_children;
+    }
+
+    public function getId()
+    {
+        return $this->_id;
     }
 }

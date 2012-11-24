@@ -60,7 +60,7 @@ function utf8_encode_assoc_array(&$arr)
  */
 function filter_validate_not_empty($v)
 {
-    if ($v === null || $v === '') {
+    if (true === empty($v)) {
         return false;
     } else {
         return $v;
@@ -68,9 +68,9 @@ function filter_validate_not_empty($v)
 }
 /**
  * Validates if a value is null, empty or numeric.
- * 
+ *
  * @param mixed $v the checked value
- * 
+ *
  * @return boolean
  */
 function filter_validate_numeric_or_empty($v)
@@ -90,7 +90,7 @@ function filter_validate_numeric_or_empty($v)
  */
 function filter_validate_date($v)
 {
-    $s_regexp 
+    $s_regexp
         = '/^([\d]){4}([.-\s\/\\\])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/';
     return filter_var(
         $v, FILTER_VALIDATE_REGEXP,
@@ -128,14 +128,15 @@ $messages = array();
  *                       It can be a file name or class name.
  * @param string $msg    the error message
  *
+ * @uses write_log_message
+ *
  * @return void
  */
 function write_error_msg($prefix, $msg)
 {
-    global $messages;
-
     if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
         $exec_time = round(microtime(true) - START_TIME, 5);
+        global $messages;
         $messages[] = array("error", $prefix, $msg, $exec_time);
     } else {
         write_log_message($prefix, $msg, LOG_ERR);
@@ -149,14 +150,15 @@ function write_error_msg($prefix, $msg)
  *                       It can be a file name or class name.
  * @param string $msg    the error message
  *
+ * @uses write_log_message
+ *
  * @return void
  */
 function write_info_msg($prefix, $msg)
 {
-    global $messages;
-
-    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
+    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {        
         $exec_time = round(microtime(true) - START_TIME, 5);
+        global $messages;
         $messages[] = array("info", $prefix, $msg, $exec_time);
     } else {
         write_log_message($prefix, $msg, LOG_INFO);
@@ -170,28 +172,39 @@ function write_info_msg($prefix, $msg)
  *                       It can be a file name or class name.
  * @param string $msg    the error message
  *
+ * @uses write_log_message
+ *
  * @return void
  */
 function write_warn_msg($prefix, $msg)
 {
-    global $messages;
-
     if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
-        $exec_time = round(microtime(true) - START_TIME, 5);        
+        $exec_time = round(microtime(true) - START_TIME, 5);
+        global $messages;
         $messages[] = array("warn", $prefix, $msg, $exec_time);
     } else {
         write_log_message($prefix, $msg, LOG_WARNING);
     }
 }
 
+function write_debug_msg($prefix, $msg)
+{
+    if (true === defined('DEBUG_ENABLED') && DEBUG_ENABLED === true) {
+        $exec_time = round(microtime(true) - START_TIME, 5);        
+        global $messages;
+        $messages[] = array("debug", $prefix, $msg, $exec_time);
+    } else {
+        write_log_message($prefix, $msg, LOG_DEBUG);
+    }
+}
 /**
  * Limits debugging to a local environment
- * 
+ *
  * @return boolean
  */
 function can_debug()
 {
-    $allowed = array ('127.0.0.1');
+    $allowed = array ('localhost', '127.0.0.1','::1');
     return in_array($_SERVER['REMOTE_ADDR'], $allowed);
 }
 /**
@@ -217,6 +230,7 @@ function flush_msgs()
         "              tr.error {background-color: red;color: white;} \n" .
         "              tr.php-error {background-color: black; color: white;}" .
         "              tr.warn {background-color: orange;}\n" .
+        "              tr.debug {background-color: green;color:white;font-style:italic;}\n" .
         "              td {padding: 5px 5px;}\n" .
         "              td.neutral {background-color: yellow;color: black;}\n" .
         "              td {border: 1px solid black;}".
@@ -285,6 +299,8 @@ function flush_msgs()
  * @param string $errfile the file where the error ocurred
  * @param string $errline the line the trigered the error
  *
+ * @uses write_log_message
+ *
  * @return void
  */
 function err_handler($errno, $errstr, $errfile, $errline)
@@ -320,8 +336,8 @@ function shutDownFunction()
 {
     $error = error_get_last();
 
-    if (true === defined('DEBUG_ENABLED') 
-        && true === DEBUG_ENABLED 
+    if (true === defined('DEBUG_ENABLED')
+        && true === DEBUG_ENABLED
         && (!isset($_SERVER['HTTP_X_REQUESTED_WITH']))
     ) {
         global $messages;
@@ -347,17 +363,22 @@ register_shutdown_function('shutdownFunction');
 
 /**
  * This function writes to the log defined in the ini file.
- * 
+ *
  * @param string $msg_ident The identity of the element writing this msg
  * @param mixed  $msg       The message being written to the log
  * @param int    $level     The log level for this message
- * 
+ *
  * @uses Framework_Registry
- * 
+ * @uses log_roller
+ *
  * @return void
  */
 function write_log_message($msg_ident, $msg, $level = LOG_INFO)
 {
+    if(false == is_writable(Framework_Registry::get('LOG_PATH'))) {
+        return false;
+    }
+
     if ($level <= DEFAULT_LOG_LEVEL) {
         $date = date('D M d H:i:s Y');
         switch ($level) {
@@ -380,7 +401,7 @@ function write_log_message($msg_ident, $msg, $level = LOG_INFO)
             $level_desc = 'INFO';
             break;
         }
-        
+
         // create the message prefix: date, remote address and the identity
         $log_msg = sprintf(
             '[%s] [%s] [CLIENT %s] [%s] ',
@@ -389,10 +410,10 @@ function write_log_message($msg_ident, $msg, $level = LOG_INFO)
             $_SERVER['REMOTE_ADDR'],
             strtoupper($msg_ident)
         );
-        
+
         //before we write to the log we check if it's time to roll the log
         log_roller();
-        
+
         if (is_a($msg, 'Exception')) {
             error_log(
                 $log_msg . $msg->getMessage() . "\n",
@@ -423,15 +444,15 @@ function write_log_message($msg_ident, $msg, $level = LOG_INFO)
 }
 /**
  * Function responsible for renaming the log file when it reaches the max size
- * 
+ *
  * @uses Framework_Registry
- * 
+ *
  * @return void
  */
 function log_roller()
 {
     $file = Framework_Registry::get('LOG_PATH');
-    if (file_exists($file) && filesize($file) > (50 * 1024)) { // 50MB Max size
+    if (file_exists($file) && filesize($file) > (500 * 1024)) { // 500MB Max size
         rename($file, $file . time());
         clearstatcache();
     }
@@ -441,12 +462,12 @@ function log_roller()
 // ==================================================================================
 /**
  * Adds a breadcrumb item to the array
- * 
+ *
  * @param string $text       the text displayed in the breadcrumb
  * @param string $controller the controller that invokes this action
  * @param string $action     the name of the action
  * @param string $url        the url placed in the href
- * 
+ *
  * @return void
  */
 function put_breadcrumb(
@@ -455,10 +476,10 @@ function put_breadcrumb(
     if (false === isset($_SESSION['breadcrumbs'])) {
         $_SESSION['breadcrumbs'] = array();
     }
-    
+
     $breadcrumbs = $_SESSION['breadcrumbs'];
     $breadcrumbs_size = sizeof($breadcrumbs);
-    
+
     for ($i = 0; $i < $breadcrumbs_size; $i++) {
         if ($breadcrumbs[$i]['controller'] === $controller
             && $breadcrumbs[$i]['action'] === $action
@@ -468,23 +489,23 @@ function put_breadcrumb(
             break;
         }
     }
-    
+
     if ($url === null) {
         $url = $_SERVER['REQUEST_URI'];
     }
-    
+
     $breadcrumb = array(
         'text'       => $text,
         'url'        => htmlentities($url),
         'action'     => $action,
         'controller' => $controller
     );
-    
+
     $_SESSION['breadcrumbs'][] = $breadcrumb;
 }
 /**
  * Clears the breadcrumb array
- * 
+ *
  * @return void
  */
 function clear_breadcrumbs()
@@ -493,7 +514,7 @@ function clear_breadcrumbs()
 }
 /**
  * Returns the breadcrumb array
- * 
+ *
  * @return array
  */
 function get_breadcrumbs()
@@ -501,4 +522,38 @@ function get_breadcrumbs()
     if (true === isset($_SESSION['breadcrumbs'])) {
         return $_SESSION['breadcrumbs'];
     }
+}
+/**
+ * A simple shell for the crypt function native in PHP to encrypt string using the
+ * bcrypt algorithm. It generates a 16 byte salt using the md5 function to use as
+ * a parameter.
+ *
+ * @param string $input  the string that is going to be encrypted
+ * @param string $salt   the salt string
+ * @param int    $rounds the cost parameter
+ *
+ * @see http://www.goodphptutorials.com/out/How_To_Safely_Store_A_Password
+ *
+ * @return string
+ */
+function bcrypt($input, $salt = 'salt', $rounds = 13)
+{
+    return crypt($input, '$2a$' . $rounds . '$' . md5($salt) . '$');
+}
+// ==================================================================================
+// FORMAT FUNCTIONS
+// ==================================================================================
+function format_date_time($time)
+{
+    return true === empty($time) ? null : date('Y-m-d H:i:s', $time);
+}
+
+function format_date($date)
+{
+    return true === empty($date) ? null : date('Y-m-d', $date);
+}
+
+function format_time($time)
+{
+    return true === empty($time) ? null : date('H:i:s', $time);
 }

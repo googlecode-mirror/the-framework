@@ -103,6 +103,15 @@ class Framework_Request
     {
         return $this->_params;
     }
+    
+     /* Override the complete array of parameters
+     *
+     * @access public
+     */
+    public function setParams($params)
+    {
+        $this->_params = $params;
+    }
 
     /**
      * Returns a parameter

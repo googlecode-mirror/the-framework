@@ -34,6 +34,8 @@ class Framework_Navigation
     private $_items;
     private $_cur_controller;
     private $_cur_action;
+    private $_navigation_root;
+    private $_allowed_navigation_root;
 
     /**
      * The constructor for the Framework_Navigation class
@@ -56,16 +58,57 @@ class Framework_Navigation
      */
     private function _init()
     {
-        $item = array();
-        $a_ser_items = array();
         $xml = simplexml_load_file($this->_file_dir);
-        foreach ($xml as $nav_item) {
-            $item['label'] = (string) $nav_item->label;
-            $item['auth'] = explode(':', $nav_item->auth);
-            $item['controller'] = (string) $nav_item->controller;
-            $item['action'] = (string) $nav_item->action;
-            $item['nav_path'] = explode(':', $nav_item->nav_path);
-            $this->_items[] = new Framework_Navigation_Item($item);
+
+        $root = new Framework_Navigation_Item(
+            array(
+                'controller' => 'root',
+                'action'     => 'root',
+                'label'      => 'root',
+                'auth'       => '*',
+                'nav_path'   => ''
+            )
+        );
+        $acl = Framework_Registry::get('acl');
+
+        foreach ($xml as $item) {
+            $this->_processXmlItem($item, $root, $acl);
+        }
+
+        $this->_navigation_root = $root;
+    }
+
+    private function _processXmlItem($xml, $parent, $acl)
+    {
+        if ($xml->getName() === 'item') {
+            
+            $a_auth = explode(':', $xml->auth);
+            $is_auth = true;
+            if ($a_auth[0] !== '*') {
+                $is_auth = $acl->isAuthorized(
+                    Framework_Registry::get('role'),
+                    $a_auth[0],
+                    isset($a_auth[1]) ? $a_auth[1] : ''
+                );
+            }
+            
+            if ($is_auth === true) {
+                $item = new Framework_Navigation_Item(
+                    array(
+                        'id'         => (string) $xml->id,
+                        'label'      => (string) utf8_encode($xml->label),
+                        'auth'       => explode(':', $xml->auth),
+                        'controller' => (string) $xml->controller,
+                        'action'     => (string) $xml->action,
+                        'nav_path'   => explode(':', $xml->nav_path)
+                    )
+                );
+                $parent->addChild($item);
+                $children = $xml->children();
+                foreach ($children as $child) {
+                    $this->_processXmlItem($child, $item, $acl);
+                }
+            }
         }
     }
 
@@ -80,42 +123,16 @@ class Framework_Navigation
             || (isset($_SESSION['navigation_role'])
             && $_SESSION['navigation_role'] !== Framework_Registry::get('role'))
         ) {
-            $new_role = true;
-        } else {
-            $new_role = false;
-        }
-
-        if (false === isset($_SESSION['navigation_allowed'])
-            || true === $new_role
-        ) {
             $this->_init();
-            $return_arr = array();
-            $a_auth = null;
-            $is_auth = false;
-            $acl = Framework_Registry::get('acl');
-
-            foreach ($this->_items as $item) {
-                $a_auth = $item->getAuth();
-                $is_auth = $acl->isAuthorized(
-                    Framework_Registry::get('role'),
-                    $a_auth[0],
-                    isset($a_auth[1]) ? $a_auth[1] : ''
-                );
-
-                if (true === $is_auth) {
-                    $return_arr[] = $item;
-                }
-            }
-
-            $_SESSION['navigation_allowed'] = serialize($return_arr);
+            $_SESSION['navigation_root'] = serialize($this->_navigation_root);
             $_SESSION['navigation_role'] = Framework_Registry::get('role');
             write_info_msg("Navigation", "Returning allowed items.");
         } else {
-            $return_arr = unserialize($_SESSION['navigation_allowed']);
+            $this->_navigation_root = unserialize($_SESSION['navigation_root']);
             write_info_msg("Navigation", "Returning allowed items from session.");
         }
 
-        return $return_arr;
+        return $this->_navigation_root;
     }
 
     /**
